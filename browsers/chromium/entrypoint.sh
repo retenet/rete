@@ -26,6 +26,11 @@ if [ ! -z "$PROXY" ]; then
     MORE_ARGS+=" --proxy-server=${proto}${hostport} "
 fi
 
+# Setup DoH?
+if [ -n "${DOH}" ]; then
+    MORE_ARGS+=" --enable-features=\"dns-over-https<DoHTrial\" --force-fieldtrials=\"DoHTrial/Group1\" --force-fieldtrial-params=\"DoHTrial.Group1:server/https://${DOH}/dns-query/method/POST\" "
+fi
+
 args=("$@")
 if [ ! -z "$MORE_ARGS" ]; then
     args+=("$MORE_ARGS")
