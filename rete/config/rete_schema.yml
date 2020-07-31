@@ -29,6 +29,8 @@ properties:
             type: boolean
   profile:
     type: object
+    required:
+      - default
     properties:
       default:
         type: string
