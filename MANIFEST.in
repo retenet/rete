@@ -1,0 +1,3 @@
+include rete/VERSION
+include rete/config/*.yml
+global-exclude *.py[cod] __pycache__ *.so

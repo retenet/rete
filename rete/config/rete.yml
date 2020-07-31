@@ -1,0 +1,13 @@
+browser:
+  name: firefox
+  proxy:
+  dns:
+    host:
+    doh: false
+
+profile:
+  default: personal
+  list: [htb, lan, media, personal, shopping, work]
+
+vpn:
+  ovpn: 

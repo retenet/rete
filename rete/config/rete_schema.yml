@@ -1,0 +1,46 @@
+type: object
+properties:
+  browser:
+    type: object
+    required: 
+      - name
+    properties:
+      name:
+        type: string
+        enum: 
+          - brave
+          - chromium
+          - firefox
+          - opeara
+          - tbb
+      proxy:
+        type: 
+          - string
+          - 'null'
+        pattern: '^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$'
+      dns:
+        type: object
+        properties:
+          host:
+            type: 
+              - string
+              - 'null'
+          doh:
+            type: boolean
+  profile:
+    type: object
+    properties:
+      default:
+        type: string
+      list: 
+        type: array
+        items:
+          type: string
+  vpn:
+    type: object
+    properties:
+      ovpn:
+        type: 
+          - string
+          - 'null'
+  
