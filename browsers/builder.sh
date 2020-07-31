@@ -2,6 +2,13 @@
 
 set -euo pipefail
 
+function push(){
+  local image
+
+  image="retenet/$1"
+  docker push "$image"
+}
+
 function build() {
   docker build $1 -t retenet/$1 --no-cache
 }
@@ -31,8 +38,8 @@ if [ "${1-}" = "release" ]; then
     for d in *
     do
         if test -d $d; then
-            IMAGE="netvisor/$d"
-            docker push "$IMAGE"
+            build "$d"
+            push "$d"
         fi
     done
     exit 0
@@ -41,7 +48,7 @@ if [ "${1-}" = "release" ]; then
   BROWSER="$2"
   if test -d $BROWSER; then
     build $BROWSER
-    docker push "netvisor/$BROWSER"
+    push "$BROWSER"
     exit 0
   else
     echo "Invalid Image Name"
