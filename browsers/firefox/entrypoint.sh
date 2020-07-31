@@ -69,6 +69,15 @@ user_pref(\"toolkit.telemetry.enabled\", false);
 user_pref(\"webgl.disabled\", true);
 " >> "$BROWSER_PROFILE_DIR/prefs.js"
 
+# Setup DoH?
+if [ -n "${DOH}" ]; then
+    echo -e "
+user_pref(\"network.trr.custom_uri\", \"$DOH\");
+user_pref(\"network.trr.mode\", 2);
+" >> "$BROWSER_PROFILE_DIR/prefs.js"
+
+fi
+
 if [ ! -z "$WAIT_FOR_CERT" ]; then
     until [ -f /usr/lib/mozilla/certificates/cert.der ]; do
         sleep 1

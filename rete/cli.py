@@ -10,8 +10,14 @@ import yaml
 import grp
 import os
 
-from rete import BROWSERS, USER_CONFIG_PATH, VERSION
-from rete.utils import parse_config, run_container, pull_image, get_containers
+from rete import BROWSERS, USER_CONFIG_PATH, VERSION, USER_DATA_PATH, DOWNLOAD_DIR
+from rete.utils import (
+    parse_config,
+    run_container,
+    pull_image,
+    get_containers,
+    add_xhost,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -55,13 +61,15 @@ def get_args():
     if args.t:
         args.profile = "temp"
 
-    logger.debug(args)
-    return args
+    if args.proxy:
+        cfg["browser"]["proxy"] = args.proxy
+
+    return args, cfg
 
 
 def main():
 
-    args = get_args()
+    args, cfg = get_args()
 
     # What action are we taking?
     if args.config:
@@ -77,8 +85,9 @@ def main():
         return
 
     user_grps = [g.gr_name for g in grp.getgrall() if os.environ["USER"] in g.gr_mem]
-    if "docker" not in user_grps:
-        logger.debug("User not in Docker group, elevating...")
+    # Not in docker group and normal user, then elevate
+    if "docker" not in user_grps and "SUDO_USER" not in os.environ:
+        logger.info("User not in Docker group, elevating...")
         elevate.elevate(graphical=False)
 
     client = docker.from_env()
@@ -92,8 +101,12 @@ def main():
         return
 
     # Lets download the latest image
-    logger.info(f"Download latest {args.browser} image...")
     pull_image(client, args.browser)
+
+    add_xhost()
+
+    # start browser
+    run_container(client, args.browser, args.profile, cfg["browser"])
 
 
 if __name__ == "__main__":
