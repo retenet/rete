@@ -48,9 +48,9 @@ if [ "${1-}" = "release" ]; then
   fi
 
   BROWSER="$2"
-  if test -d $BROWSER; then
+  if test -d "${SELF}/${BROWSER}"; then
     build $BROWSER
-    push "$BROWSER"
+    push $BROWSER
     exit 0
   else
     echo "Invalid Image Name"
