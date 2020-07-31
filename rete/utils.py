@@ -26,9 +26,13 @@ def parse_config():
             jsonschema.validate(cfg, yaml.safe_load(fr2))
         except jsonschema.exceptions.ValidationError as e:
             if "Failed validating 'pattern'" in str(e):
-                logger.error(f"Invalid Proxy in Config File: {USER_CONFIG_PATH}/rete.yml")
+                logger.error(
+                    f"Invalid Proxy in Config File: {USER_CONFIG_PATH}/rete.yml"
+                )
             else:
-                logger.error(f"Invalid Option in Config File: {USER_CONFIG_PATH}/rete.yml")
+                logger.error(
+                    f"Invalid Option in Config File: {USER_CONFIG_PATH}/rete.yml"
+                )
                 logger.error(e)
             exit(1)
 
