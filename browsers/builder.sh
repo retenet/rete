@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -exuo pipefail
+
+SELF=$(dirname `realpath $0`)
 
 function push(){
   local image
@@ -10,13 +12,13 @@ function push(){
 }
 
 function build() {
-  docker build $1 -t retenet/$1 --no-cache
+  docker build "${SELF}/$1" -t retenet/$1 --no-cache
 }
 
 if [ "${1-}" = "build" ]; then
   BROWSER="$2"
 
-  if test -d $BROWSER; then
+  if test -d "${SELF}/${BROWSER}"; then
     build $BROWSER
     exit 0
   elif [ "$BROWSER" == "all" ]; then
@@ -37,7 +39,7 @@ if [ "${1-}" = "release" ]; then
   if [ "$#" -eq 1 ]; then
     for d in *
     do
-        if test -d $d; then
+        if test -d "${SELF}/$d"; then
             build "$d"
             push "$d"
         fi
