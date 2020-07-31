@@ -20,11 +20,13 @@ if not os.path.exists(USER_CONFIG_PATH):
     os.makedirs(USER_CONFIG_PATH)
 
 try:
-    LOG_PATH = f"{os.environ['XDG_DATA_HOME']}/rete"
+    USER_DATA_PATH = f"{os.environ['XDG_DATA_HOME']}/rete"
 except KeyError:
-    LOG_PATH = f"{os.environ['HOME']}/.local/share/rete"
-if not os.path.exists(LOG_PATH):
-    os.makedirs(LOG_PATH)
+    USER_DATA_PATH = f"{os.environ['HOME']}/.local/share/rete"
+if not os.path.exists(USER_DATA_PATH):
+    os.makedirs(USER_DATA_PATH)
+
+DOWNLOAD_DIR = f"{os.environ['HOME']}/Downloads"
 
 BROWSERS = ["brave", "chromium", "firefox", "opera", "tbb"]
 
@@ -38,7 +40,7 @@ logging.config.dictConfig(
             "file": {
                 "level": "DEBUG",
                 "class": "logging.FileHandler",
-                "filename": f"{LOG_PATH}/rete.log",
+                "filename": f"{USER_DATA_PATH}/rete.log",
             },
         },
         "loggers": {

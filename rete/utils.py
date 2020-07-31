@@ -8,9 +8,13 @@ import shutil
 import yaml
 import os
 
-from rete import REPO_NAME, USER_CONFIG_PATH
+from rete import REPO_NAME, USER_CONFIG_PATH, DOWNLOAD_DIR
 
 logger = logging.getLogger(__name__)
+
+
+def create_cntr_name():
+    return "rete"
 
 
 def parse_config():
@@ -39,11 +43,58 @@ def parse_config():
     return cfg
 
 
-def run_container(client, browser, detach=False):
-    cntr = client.containers.run(f"{REPO_NAME}/{browser}", detach=detach)
+def run_container(client, browser, profile, dns):
+    profile_dir = ""
+    security_opt = list()
+    dns_list = list()
+
+    volumes = {
+        f"{USER_DATA_PATH}/pulseaudio.socket": "/tmp/pulseaudio.socket",
+        f"{USER_DATA_PATH}/pulseaudio.client.conf": "/etc/pulse/client.conf",
+        "/tmp/.X11-unix/": "/tmp/.X11-unix/",
+        DOWNLOAD_DIR: "/home/user/Downloads",
+    }
+
+    if profile != "temp":
+        profile_dir = f"{USER_DATA_PATH}/profiles/browser/profile"
+        if not os.path.exists(profile_dir):
+            os.makedirs(profile_dir)
+        volumes[profile_dir] = "/home/user/profile"
+
+    if browser in ["brave", "chromium", "opera"]:
+        security_opt.append(f"seccomp={os.path.dirname(__file__)}/chrome.json")
+
+    if dns:
+        dns_list.append(dns)
+
+    cntr = client.containers.run(
+        f"{REPO_NAME}/{browser}",
+        detach=True,
+        devices=["/dev/snd", "/dev/dri"],
+        environment={
+            "BROWSER": browser,
+            "DISPLAY": os.environ["DISPLAY"],
+            "PROFILE_NAME": profile,
+            "PULSE_SERVER": "unix:/tmp/pulseaudio.socket",
+            "PULSE_COOKIE": "/tmp/pulseaudio.cookie",
+        },
+        hostname=profile,
+        name=create_cntr_name(),
+        dns=dns_list,
+        security_opt=security_opt,
+        volumes=volumes,
+    )
     logger.info(cntr)
 
 
 def pull_image(client, browser):
     cntr = client.images.pull(f"{REPO_NAME}/{browser}")
     logger.info(cntr)
+
+
+def get_containers(client):
+    cntrs = list()
+    for cntr in client.containers.list():
+        if cntr.name.find("retenet") != -1:
+            cntrs.append(cntr)
+    return cntrs
