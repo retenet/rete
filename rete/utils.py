@@ -31,6 +31,7 @@ def fix_folder_perms(path):
     gid = pwd.getpwnam(user).pw_gid
 
     for root, dirs, files in os.walk(path):
+        os.chown(root, uid, gid)
         for d in dirs:
             dname = os.path.join(root, d)
             os.chown(dname, uid, gid)
@@ -123,7 +124,7 @@ def run_container(client, browser, profile, cfg, vpn):
         volumes.append(f"{profile_dir}:/home/user/profile")
 
     if browser in ["brave", "chromium", "opera"]:
-        with open(f"{os.path.dirname(__file__)}/chrome.json") as fr:
+        with open(f"{USER_DATA_PATH}/chrome.json") as fr:
             chrome_seccomp = fr.read()
         security_opt.append(f"seccomp={chrome_seccomp}")
 

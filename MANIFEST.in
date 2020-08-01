@@ -1,5 +1,4 @@
 include rete/VERSION
-include rete/chrome.json
-include rete/config/pulseaudio.client.conf
-include rete/config/*.yml
+include config/*
+recursive-include data *
 global-exclude *.py[cod] __pycache__ *.so
