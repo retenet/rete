@@ -2,9 +2,35 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup, find_packages
+from setuptools.command.install import install
+import grp
+import sys
 import os
 
-here = os.path.abspath(os.path.dirname(__file__))
+class PermissionDenied(Exception):
+    pass
+
+class InstallWrapper(install):
+
+    def run(self):
+        self._startup_check()
+        install.run(self)
+
+    def _startup_check(self):
+
+        # Are you root ?
+        if os.geteuid() == 0:
+            return
+
+        # Are you in docker group ?
+        user_grps = [g.gr_name for g in grp.getgrall() if os.environ["USER"] in g.gr_mem]
+        if "docker" in user_grps:
+            return
+
+        # Now we might have a problem...
+        raise PermissionDenied("Current user will not have permisson to execute commands. Either install as root, or join docker group.")
+
+
 
 with open(os.path.join("rete", "VERSION"), "r", encoding="utf-8") as f:
     version = f.read()
@@ -38,9 +64,8 @@ setup(
         "jsonschema==3.2.0",
         "PyYAML==5.3.1",
     ],
-    use_scm_version=True,
-    setup_required=["setuptools_scm"],
     extras_require={"dev": ["black==19.10b0", "ipython==7.13.0", "pytest==4.6.7"],},
     entry_points={"console_scripts": ["rete = rete.cli:main",],},
     include_package_data=True,
+    cmdclass={'install': InstallWrapper},
 )
