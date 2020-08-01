@@ -13,6 +13,12 @@ from rete import REPO_NAME, DOWNLOAD_DIR, USER_CONFIG_PATH, USER_DATA_PATH, puls
 
 logger = logging.getLogger(__name__)
 
+def setup_vpn(client, vpn):
+    if not vpn:
+        return None
+
+    pull_image(client, f'{REPO_NAME/tunle}')
+
 
 def create_cntr_name(client, browser):
     name = f"rete_{browser}"
@@ -73,7 +79,7 @@ def parse_config():
     return cfg
 
 
-def run_container(client, browser, profile, cfg):
+def run_container(client, browser, profile, cfg, vpn):
     profile_dir = ""
     security_opt = list()
     dns_list = list()
@@ -89,7 +95,7 @@ def run_container(client, browser, profile, cfg):
         profile_dir = f"{USER_DATA_PATH}/profiles/browser/profile"
         if not os.path.exists(profile_dir):
             os.makedirs(profile_dir)
-        volumes[profile_dir] = "/home/user/profile"
+        volumes.append(f"{profile_dir}:/home/user/profile")
 
     if browser in ["brave", "chromium", "opera"]:
         with open(f"{os.path.dirname(__file__)}/chrome.json") as fr:
@@ -116,6 +122,8 @@ def run_container(client, browser, profile, cfg):
     except KeyError:
         proxy = None
 
+    vpn_name = setup_vpn(client, vpn)
+
     logger.info(f"Starting {browser}...")
     cntr = client.containers.run(
         f"{REPO_NAME}/{browser}",
@@ -134,6 +142,7 @@ def run_container(client, browser, profile, cfg):
         hostname=profile,
         name=create_cntr_name(client, browser),
         dns=dns_list,
+        network=vpn_name,
         remove=True,
         security_opt=security_opt,
         volumes=volumes,

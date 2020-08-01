@@ -106,7 +106,7 @@ def main():
     add_xhost()
 
     # start browser
-    run_container(client, args.browser, args.profile, cfg["browser"])
+    run_container(client, args.browser, args.profile, cfg["browser"], args.vpn)
 
 
 if __name__ == "__main__":
