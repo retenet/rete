@@ -7,6 +7,7 @@ import logging
 import docker
 import shutil
 import yaml
+import pwd
 import os
 
 from rete import (
@@ -19,12 +20,29 @@ from rete import (
 
 logger = logging.getLogger(__name__)
 
+def fix_folder_perms(path):
+    
+    if 'SUDO_USER' in os.environ:
+        user = os.environ['SUDO_USER']
+    else:
+        user = os.environ['USER']
+
+    uid = pwd.getpwnam(user).pw_uid
+    gid = pwd.getpwnam(user).pw_gid
+
+    for root, dirs, files in os.walk(path):
+        for d in dirs:
+            dname = os.path.join(root, d)
+            os.chown(dname, uid, gid)
 
 def setup_vpn(client, vpn):
     if not vpn:
         return None
 
-    pull_image(client, f"{REPO_NAME/tunle}")
+    pull_image(client, "tunle")
+    logger.info(vpn)
+
+    return None
 
 
 def create_cntr_name(client, browser):
@@ -99,7 +117,7 @@ def run_container(client, browser, profile, cfg, vpn):
     ]
 
     if profile != "temp":
-        profile_dir = f"{USER_DATA_PATH}/profiles/browser/profile"
+        profile_dir = f"{USER_DATA_PATH}/profiles/{browser}/{profile}"
         if not os.path.exists(profile_dir):
             os.makedirs(profile_dir)
         volumes.append(f"{profile_dir}:/home/user/profile")
@@ -131,6 +149,7 @@ def run_container(client, browser, profile, cfg, vpn):
 
     vpn_name = setup_vpn(client, vpn)
 
+    fix_folder_perms(f'{USER_DATA_PATH}')
     logger.info(f"Starting {browser}...")
     cntr = client.containers.run(
         f"{REPO_NAME}/{browser}",
