@@ -9,15 +9,22 @@ import shutil
 import yaml
 import os
 
-from rete import REPO_NAME, DOWNLOAD_DIR, USER_CONFIG_PATH, USER_DATA_PATH, pulse_socket
+from rete import (
+    DOWNLOAD_DIR,
+    USER_CONFIG_PATH,
+    USER_DATA_PATH,
+    pulse_socket,
+    REPO_NAME,
+)
 
 logger = logging.getLogger(__name__)
+
 
 def setup_vpn(client, vpn):
     if not vpn:
         return None
 
-    pull_image(client, f'{REPO_NAME/tunle}')
+    pull_image(client, f"{REPO_NAME/tunle}")
 
 
 def create_cntr_name(client, browser):

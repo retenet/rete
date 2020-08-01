@@ -10,7 +10,13 @@ import yaml
 import grp
 import os
 
-from rete import BROWSERS, USER_CONFIG_PATH, VERSION, USER_DATA_PATH, DOWNLOAD_DIR
+from rete import (
+    BROWSERS,
+    DOWNLOAD_DIR,
+    USER_CONFIG_PATH,
+    USER_DATA_PATH,
+    VERSION,
+)
 from rete.utils import (
     parse_config,
     run_container,
