@@ -47,7 +47,19 @@ properties:
   vpn:
     type: object
     properties:
-      ovpn:
+      provider:
+        type: 
+          - string
+          - 'null'
+      user:
+        type: 
+          - string
+          - 'null'
+      pass:
+        type: 
+          - string
+          - 'null'
+      config:
         type: 
           - string
           - 'null'

@@ -10,4 +10,7 @@ profile:
   list: [htb, lan, media, personal, shopping, work]
 
 vpn:
-  ovpn: 
+  provider:
+  user:
+  pass:
+  config: 
