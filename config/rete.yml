@@ -1,16 +1,17 @@
 browser:
   name: firefox
-  proxy:
-  dns:
-    host:
-    doh: false
+  #proxy:
+  #dns:
+  #  ip: 
+  #  host:
+  #  doh: false
 
 profile:
   default: personal
   list: [htb, lan, media, personal, shopping, work]
 
-vpn:
-  provider:
-  user:
-  pass:
-  config: 
+#vpn:
+#  provider:
+#  user:
+#  pass:
+#  config: 
