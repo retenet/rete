@@ -68,9 +68,7 @@ class InstallWrapper(install):
             return
 
         if not os.path.exists(config_dir):
-            os.makedirs(config_dir)
-
-        shutil.copy('config/rete.yml', config_dir)
+            shutil.copytree('config', config_dir)
         self._fix_folder_perms(config_dir)
 
     def _install_data(self):
