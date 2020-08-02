@@ -48,8 +48,6 @@ def get_args():
         help="Profile Name",
     )
     parser.add_argument("-t", action="store_true", help="Temporary Profile")
-    parser.add_argument("--vpn", required=False, help="Use a VPN")
-    parser.add_argument("--proxy", required=False, help="PROTO://IP:PORT")
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
@@ -67,9 +65,6 @@ def get_args():
     if args.t:
         args.profile = "temp"
 
-    if args.proxy:
-        cfg["browser"]["proxy"] = args.proxy
-
     return args, cfg
 
 
@@ -85,15 +80,11 @@ def main():
         else:
             logger.error(f"$EDITOR is not defined. Edit {config_path} manually")
         return
-    elif args.update:
-        logger.info("Checking for Updates...")
-        subprocess.call(["python3", "-m", "pip", "install", "-U", "rete"])
-        return
 
     user_grps = [g.gr_name for g in grp.getgrall() if os.environ["USER"] in g.gr_mem]
     # Not in docker group and normal user, then elevate
     if "docker" not in user_grps and "SUDO_USER" not in os.environ:
-        logger.info("User not in Docker group, elevating...")
+        logger.warning("User not in Docker group, elevating...")
         elevate.elevate(graphical=False)
 
     client = docker.from_env()
@@ -105,6 +96,10 @@ def main():
             cntr.stop()
         logger.info("Done.")
         return
+    elif args.update:
+        logger.info("Checking for Updates...")
+        subprocess.call(["python3", "-m", "pip", "install", "-U", "rete"])
+        return
 
     # Lets download the latest image
     pull_image(client, args.browser)
@@ -112,7 +107,11 @@ def main():
     add_xhost()
 
     # start browser
-    run_container(client, args.browser, args.profile, cfg["browser"], args.vpn)
+    if 'vpn' in cfg:
+        vpn = cfg['vpn']
+    else:
+        vpn = None
+    run_container(client, args.browser, args.profile, cfg["browser"], vpn)
 
 
 if __name__ == "__main__":

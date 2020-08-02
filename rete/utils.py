@@ -37,20 +37,68 @@ def fix_folder_perms(path):
             os.chown(dname, uid, gid)
 
 def setup_vpn(client, vpn):
+    volumes = list()
+    environment = dict()
+
     if not vpn:
-        return None
+        return "bridge"
 
     pull_image(client, "tunle")
-    logger.info(vpn)
+    
+    if 'provider' in vpn:
+        environment['PROVIDER'] = vpn['provider']
+        if vpn['provider'] not in ['tor', 'generic']:
+            if 'user' in vpn and 'pass' in vpn:
+                environment['UNAME'] = vpn['user']
+                environment['PASSWD'] = vpn['pass']
+            else:
+                logger.error('Cannot Start VPN without Login Creds or a Config')
+                exit(1)
+        elif vpn['provider'] == 'generic': 
+            environment['UNAME'] = 'generic'
+            environment['PASSWD'] = 'generic'
 
-    return None
+            if 'config' in vpn and vpn['config']:
+                volumes.append(f'{vpn["config"]:/tmp/vpn}')
+            else:
+                logger.error('Cannot Start VPN without Login Creds or a Config')
+                exit(1)
+        else:
+            environment['UNAME'] = 'tor'
+            environment['PASSWD'] = 'tor'
+    elif 'config' in vpn and vpn['config']:
+        volumes.append(f'{vpn["config"]:/tmp/vpn}')
+    else:
+        logger.error('Cannot Start VPN without Login Creds or a Config')
+        exit(1)
 
 
-def create_cntr_name(client, browser):
-    name = f"rete_{browser}"
+    cntr_name=create_cntr_name(client, vpn['provider'], True)
+    logger.info(f"Starting {cntr_name}...")
+    cntr = client.containers.run(
+        f"{REPO_NAME}/tunle",
+        cap_drop=['all'],
+        cap_add=['MKNOD', 'SETUID', 'SETGID', 'NET_ADMIN', 'NET_RAW'],
+        detach=True,
+        devices=["/dev/net/tun"],
+        environment=environment,
+        hostname=vpn['provider'],
+        name=cntr_name,
+        remove=True,
+        volumes=volumes,
+    )
+
+    return f"container:{cntr_name}"
+
+
+def create_cntr_name(client, browser, vpn=False):
+    if vpn:
+        name = f"tunle_{browser}"
+    else:
+        name = f"rete_{browser}"
     cntrs = list()
     for cntr in client.containers.list():
-        if cntr.name.find(f"rete_{browser}") != -1:
+        if cntr.name.find(name) != -1:
             cntrs.append(cntr.name)
 
     if not cntrs:
@@ -77,7 +125,7 @@ def parse_config():
         shutil.copy(f"{os.path.dirname(__file__)}/config/rete.yml", config_path)
 
     with open(f"{USER_CONFIG_PATH}/rete.yml") as fr, open(
-        f"{os.path.dirname(__file__)}/config/rete_schema.yml"
+        f"{USER_CONFIG_PATH}/rete_schema.yml"
     ) as fr2:
         try:
             cfg = yaml.safe_load(fr)
@@ -112,7 +160,7 @@ def run_container(client, browser, profile, cfg, vpn):
 
     volumes = [
         f"{pulse_socket}:/tmp/pulseaudio.socket",
-        f"{os.path.dirname(__file__)}/config/pulseaudio.client.conf:/etc/pulse/client.conf",
+        f"{USER_DATA_PATH}/pulseaudio.client.conf:/etc/pulse/client.conf",
         f"{DOWNLOAD_DIR}:/home/user/Downloads",
         "/tmp/.X11-unix/:/tmp/.X11-unix/",
     ]
@@ -149,6 +197,11 @@ def run_container(client, browser, profile, cfg, vpn):
         proxy = None
 
     vpn_name = setup_vpn(client, vpn)
+    if vpn_name == "bridge":
+        hostname = profile
+    else:
+        hostname = None
+        dns_list = list()
 
     fix_folder_perms(f'{USER_DATA_PATH}')
     logger.info(f"Starting {browser}...")
@@ -166,10 +219,10 @@ def run_container(client, browser, profile, cfg, vpn):
             "PULSE_SERVER": "unix:/tmp/pulseaudio.socket",
             "PULSE_COOKIE": "/tmp/pulseaudio.cookie",
         },
-        hostname=profile,
+        hostname=hostname,
         name=create_cntr_name(client, browser),
         dns=dns_list,
-        network=vpn_name,
+        network_mode=vpn_name,
         remove=True,
         security_opt=security_opt,
         volumes=volumes,
