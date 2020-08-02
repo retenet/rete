@@ -107,8 +107,8 @@ def main():
     add_xhost()
 
     # start browser
-    if 'vpn' in cfg:
-        vpn = cfg['vpn']
+    if "vpn" in cfg:
+        vpn = cfg["vpn"]
     else:
         vpn = None
     run_container(client, args.browser, args.profile, cfg["browser"], vpn)

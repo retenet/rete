@@ -20,12 +20,13 @@ from rete import (
 
 logger = logging.getLogger(__name__)
 
+
 def fix_folder_perms(path):
-    
-    if 'SUDO_USER' in os.environ:
-        user = os.environ['SUDO_USER']
+
+    if "SUDO_USER" in os.environ:
+        user = os.environ["SUDO_USER"]
     else:
-        user = os.environ['USER']
+        user = os.environ["USER"]
 
     uid = pwd.getpwnam(user).pw_uid
     gid = pwd.getpwnam(user).pw_gid
@@ -36,6 +37,7 @@ def fix_folder_perms(path):
             dname = os.path.join(root, d)
             os.chown(dname, uid, gid)
 
+
 def setup_vpn(client, vpn):
     volumes = list()
     environment = dict()
@@ -44,45 +46,44 @@ def setup_vpn(client, vpn):
         return "bridge"
 
     pull_image(client, "tunle")
-    
-    if 'provider' in vpn:
-        environment['PROVIDER'] = vpn['provider']
-        if vpn['provider'] not in ['tor', 'generic']:
-            if 'user' in vpn and 'pass' in vpn:
-                environment['UNAME'] = vpn['user']
-                environment['PASSWD'] = vpn['pass']
-            else:
-                logger.error('Cannot Start VPN without Login Creds or a Config')
-                exit(1)
-        elif vpn['provider'] == 'generic': 
-            environment['UNAME'] = 'generic'
-            environment['PASSWD'] = 'generic'
 
-            if 'config' in vpn and vpn['config']:
+    if "provider" in vpn:
+        environment["PROVIDER"] = vpn["provider"]
+        if vpn["provider"] not in ["tor", "generic"]:
+            if "user" in vpn and "pass" in vpn:
+                environment["UNAME"] = vpn["user"]
+                environment["PASSWD"] = vpn["pass"]
+            else:
+                logger.error("Cannot Start VPN without Login Creds or a Config")
+                exit(1)
+        elif vpn["provider"] == "generic":
+            environment["UNAME"] = "generic"
+            environment["PASSWD"] = "generic"
+
+            if "config" in vpn and vpn["config"]:
                 volumes.append(f'{vpn["config"]:/tmp/vpn}')
             else:
-                logger.error('Cannot Start VPN without Login Creds or a Config')
+                logger.error("Cannot Start VPN without Login Creds or a Config")
                 exit(1)
         else:
-            environment['UNAME'] = 'tor'
-            environment['PASSWD'] = 'tor'
-    elif 'config' in vpn and vpn['config']:
+            environment["UNAME"] = "tor"
+            environment["PASSWD"] = "tor"
+    elif "config" in vpn and vpn["config"]:
         volumes.append(f'{vpn["config"]:/tmp/vpn}')
     else:
-        logger.error('Cannot Start VPN without Login Creds or a Config')
+        logger.error("Cannot Start VPN without Login Creds or a Config")
         exit(1)
 
-
-    cntr_name=create_cntr_name(client, vpn['provider'], True)
+    cntr_name = create_cntr_name(client, vpn["provider"], True)
     logger.info(f"Starting {cntr_name}...")
     cntr = client.containers.run(
         f"{REPO_NAME}/tunle",
-        cap_drop=['all'],
-        cap_add=['MKNOD', 'SETUID', 'SETGID', 'NET_ADMIN', 'NET_RAW'],
+        cap_drop=["all"],
+        cap_add=["MKNOD", "SETUID", "SETGID", "NET_ADMIN", "NET_RAW"],
         detach=True,
         devices=["/dev/net/tun"],
         environment=environment,
-        hostname=vpn['provider'],
+        hostname=vpn["provider"],
         name=cntr_name,
         remove=True,
         volumes=volumes,
@@ -203,7 +204,7 @@ def run_container(client, browser, profile, cfg, vpn):
         hostname = None
         dns_list = list()
 
-    fix_folder_perms(f'{USER_DATA_PATH}')
+    fix_folder_perms(f"{USER_DATA_PATH}")
     logger.info(f"Starting {browser}...")
     cntr = client.containers.run(
         f"{REPO_NAME}/{browser}",

@@ -9,11 +9,12 @@ import pwd
 import sys
 import os
 
+
 class PermissionDenied(Exception):
     pass
 
-class InstallWrapper(install):
 
+class InstallWrapper(install):
     def run(self):
         self._startup_check()
         self._install_config()
@@ -21,15 +22,15 @@ class InstallWrapper(install):
         install.run(self)
 
     def _fix_folder_perms(self, path):
-        
-        if 'SUDO_USER' in os.environ:
-            user = os.environ['SUDO_USER']
+
+        if "SUDO_USER" in os.environ:
+            user = os.environ["SUDO_USER"]
         else:
-            user = os.environ['USER']
-    
+            user = os.environ["USER"]
+
         uid = pwd.getpwnam(user).pw_uid
         gid = pwd.getpwnam(user).pw_gid
-    
+
         for root, dirs, files in os.walk(path):
             os.chown(root, uid, gid)
             for d in dirs:
@@ -40,10 +41,10 @@ class InstallWrapper(install):
                 os.chown(fname, uid, gid)
 
     def _get_user(self):
-        if 'SUDO_USER' in os.environ:
-            user = os.environ['SUDO_USER']
+        if "SUDO_USER" in os.environ:
+            user = os.environ["SUDO_USER"]
         else:
-            user = os.environ['USER']
+            user = os.environ["USER"]
         return user
 
     def _startup_check(self):
@@ -53,33 +54,37 @@ class InstallWrapper(install):
             return
 
         # Are you in docker group ?
-        user_grps = [g.gr_name for g in grp.getgrall() if os.environ["USER"] in g.gr_mem]
+        user_grps = [
+            g.gr_name for g in grp.getgrall() if os.environ["USER"] in g.gr_mem
+        ]
         if "docker" in user_grps:
             return
 
         # Now we might have a problem...
-        raise PermissionDenied("Current user will not have permisson to execute commands. Either install as root, or join docker group.")
+        raise PermissionDenied(
+            "Current user will not have permisson to execute commands. Either install as root, or join docker group."
+        )
 
     def _install_config(self):
         user = self._get_user()
 
-        config_dir = f'/home/{user}/.config/rete'
-        if os.path.exists(f'{config_dir}/rete.yml'):
+        config_dir = f"/home/{user}/.config/rete"
+        if os.path.exists(f"{config_dir}/rete.yml"):
             return
 
         if not os.path.exists(config_dir):
-            shutil.copytree('config', config_dir)
+            shutil.copytree("config", config_dir)
         self._fix_folder_perms(config_dir)
 
     def _install_data(self):
         user = self._get_user()
 
-        data_dir = f'/home/{user}/.local/share/rete'
-        if os.path.exists(f'{data_dir}/chrome.json'):
+        data_dir = f"/home/{user}/.local/share/rete"
+        if os.path.exists(f"{data_dir}/chrome.json"):
             return
 
         if not os.path.exists(data_dir):
-            shutil.copytree('data', data_dir)
+            shutil.copytree("data", data_dir)
         self._fix_folder_perms(data_dir)
 
 
@@ -118,5 +123,5 @@ setup(
     extras_require={"dev": ["black==19.10b0", "ipython==7.13.0", "pytest==4.6.7"],},
     entry_points={"console_scripts": ["rete = rete.cli:main",],},
     include_package_data=True,
-    cmdclass={'install': InstallWrapper},
+    cmdclass={"install": InstallWrapper},
 )
