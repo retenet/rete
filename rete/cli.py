@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
+from xml.etree import ElementTree
 import subprocess
 import argparse
 import requests
@@ -29,6 +30,15 @@ from rete.utils import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def up_to_date():
+    resp = requests.get("https://pypi.org/rss/project/rete/releases.xml")
+    tree = ElementTree.fromstring(resp.content)
+    latest_ver = tree[0].find("item")[0].text
+
+    if latest_ver != VERSION:
+        return latest_ver
 
 
 def get_args():
@@ -72,6 +82,10 @@ def get_args():
 
 
 def main():
+
+    ver = up_to_date()
+    if ver:
+        logger.warning(f"Update {ver} Available!")
 
     args, cfg = get_args()
 
