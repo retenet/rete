@@ -90,6 +90,11 @@ def main():
         logger.warning("User not in Docker group, elevating...")
         elevate.elevate(graphical=False)
 
+    if args.update:
+        logger.info("Checking for Updates...")
+        subprocess.call(["python3", "-m", "pip", "install", "-U", "rete"])
+        return
+
     try:
         client = docker.from_env()
         # Verify docker is running
@@ -108,10 +113,6 @@ def main():
             logger.info(f"Stopping {cntr.name}...")
             cntr.stop()
         logger.info("Done.")
-        return
-    elif args.update:
-        logger.info("Checking for Updates...")
-        subprocess.call(["python3", "-m", "pip", "install", "-U", "rete"])
         return
 
     # Lets download the latest image
