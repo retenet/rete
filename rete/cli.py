@@ -3,11 +3,14 @@
 
 import subprocess
 import argparse
+import requests
 import logging
 import elevate
+import urllib3
 import docker
 import yaml
 import grp
+import sys
 import os
 
 from rete import (
@@ -87,7 +90,17 @@ def main():
         logger.warning("User not in Docker group, elevating...")
         elevate.elevate(graphical=False)
 
-    client = docker.from_env()
+    try:
+        client = docker.from_env()
+        # Verify docker is running
+        client.containers.list()
+    except (
+        FileNotFoundError,
+        urllib3.exceptions.ProtocolError,
+        requests.exceptions.ConnectionError,
+    ):
+        logger.error("Failed to connect to Docker. Is it running?")
+        sys.exit(1)
 
     if args.rm:
         logger.info("Getting All Running Browsers...")
