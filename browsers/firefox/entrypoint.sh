@@ -6,7 +6,7 @@ PROFILE_NAME=${PROFILE_NAME:-tmp}
 
 mkdir -p $BROWSER_PROFILE_DIR
 
-if [ ! -z "$PROXY" ]; then
+if [ -n "$PROXY" ]; then
 
     # extract the protocol
     proto="$(echo $PROXY | grep :// | sed -e's,^\(.*://\).*,\1,g')"
@@ -88,6 +88,17 @@ fi
 args=("$@")
 if [ ! -z "$MORE_ARGS" ]; then
     args+=("$MORE_ARGS")
+fi
+
+if [ "$PROXY" == "retenet_burpsuite:8080" ]; then
+    echo "Waiting for Burpsuite to start..."
+
+    CERT_DIR="/tmp/certificates"
+    pushd $CERT_DIR
+    until [ -f cert.der ]; do
+        wget -qO cert.der "http://retenet_burpsuite:8080/cert" || rm cert.der
+    done
+    popd
 fi
 
 exec "${args[@]}"
