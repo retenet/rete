@@ -87,6 +87,7 @@ def setup_vpn(client, vpn):
         hostname=vpn["provider"],
         name=cntr_name,
         remove=True,
+        shm_size="3G",
         volumes=volumes,
     )
 
