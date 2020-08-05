@@ -33,9 +33,11 @@ logger = logging.getLogger(__name__)
 
 
 def up_to_date():
+    logger.debug("Querying pypi.org for latest version")
     resp = requests.get("https://pypi.org/rss/project/rete/releases.xml")
     tree = ElementTree.fromstring(resp.content)
     latest_ver = tree[0].find("item")[0].text
+    logger.debug(f"Got version: {latest_ver}")
 
     if latest_ver != VERSION:
         return latest_ver
@@ -78,6 +80,8 @@ def get_args():
     if args.t:
         args.profile = "temp"
 
+    logger.debug(args)
+    logger.debug(cfg)
     return args, cfg
 
 
@@ -91,6 +95,7 @@ def main():
 
     # What action are we taking?
     if args.config:
+        logger.debug("Opening config for editing")
         config_path = f"{USER_CONFIG_PATH}/rete.yml"
         if os.environ["EDITOR"]:
             subprocess.call([os.environ["EDITOR"], config_path])
@@ -99,9 +104,10 @@ def main():
         return
 
     user_grps = [g.gr_name for g in grp.getgrall() if os.environ["USER"] in g.gr_mem]
+    logger.debug(user_grps)
     # Not in docker group and normal user, then elevate
     if "docker" not in user_grps and "SUDO_USER" not in os.environ:
-        logger.warning("User not in Docker group, elevating...")
+        logger.warning("User not in Docker group. Elevating...")
         elevate.elevate(graphical=False)
 
     if args.update:

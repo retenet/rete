@@ -32,9 +32,11 @@ def fix_folder_perms(path):
     gid = pwd.getpwnam(user).pw_gid
 
     for root, dirs, files in os.walk(path):
+        logger.debug(f"chown {uid}:{gid} {root}")
         os.chown(root, uid, gid)
         for d in dirs:
             dname = os.path.join(root, d)
+            logger.debug(f"chown {uid}:{gid} {dname}")
             os.chown(dname, uid, gid)
 
 
@@ -47,6 +49,7 @@ def setup_vpn(client, vpn):
 
     pull_image(client, "tunle")
 
+    # User must set provider with user/pass or a config
     if "provider" in vpn:
         environment["PROVIDER"] = vpn["provider"]
         if vpn["provider"] not in ["tor", "generic"]:
@@ -57,6 +60,7 @@ def setup_vpn(client, vpn):
                 logger.error("Cannot Start VPN without Login Creds or a Config")
                 exit(1)
         elif vpn["provider"] == "generic":
+            # These may be set in tunle
             environment["UNAME"] = "generic"
             environment["PASSWD"] = "generic"
 
@@ -65,9 +69,6 @@ def setup_vpn(client, vpn):
             else:
                 logger.error("Cannot Start VPN without Login Creds or a Config")
                 exit(1)
-        else:
-            environment["UNAME"] = "tor"
-            environment["PASSWD"] = "tor"
     elif "config" in vpn and vpn["config"]:
         volumes.append(f'{vpn["config"]:/tmp/vpn}')
     else:
