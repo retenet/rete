@@ -87,7 +87,6 @@ def setup_vpn(client, vpn):
         hostname=vpn["provider"],
         name=cntr_name,
         remove=True,
-        shm_size="3G",
         volumes=volumes,
     )
 
@@ -228,6 +227,7 @@ def run_container(client, browser, profile, cfg, vpn):
         network_mode=vpn_name,
         remove=True,
         security_opt=security_opt,
+        shm_size="3G",
         volumes=volumes,
     )
 
