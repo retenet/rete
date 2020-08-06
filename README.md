@@ -55,23 +55,24 @@ profile:
 ```
 
 ### proxy
-  Currently the exected value is an HTTP/HTTPS proxy value. SOCKS coming soon.
+  Currently the exected value is an HTTP/HTTPS proxy value. SOCKS coming soon. </br>
   Proxy also supports BurpSuite by passing the value `burpsuite`.
 
 ### dns
-  ip: as the name implies, the ip of the dns server you want to use.
-  host: the appropriate hostname and is the value used when DoH is enabled
+  ip: as the name implies, the ip of the dns server you want to use.</br>
+  host: the appropriate hostname and is the value used when DoH is enabled</br>
   doh: enabled or disabled DNS over HTTP
 
 ### profile
-default: the profile to load by default on browser start
-list: the list of available profiles to use, feel free to add/remove any of them
+default: the profile to load by default on browser start</br>
+list: the list of available profiles to use, feel free to add/remove any of them</br>
  the lan profile is a special restricted profile that only has access to RFC1918 IPs
 
 ### vpn
- See retenet/tunle for more detailed documentation.
- provider: one of the supported providers
- user: username for login
- pass: password for login
- config: this is used for custom openvpn configs
- Typical args would be provider with user/pass, or simply just a config
+ See retenet/tunle for more detailed documentation.</br>
+ 
+ provider: one of the supported providers</br>
+ user: username for login</br>
+ pass: password for login</br>
+ config: this is used for custom openvpn configs</br>
+ Typical args would be provider with user/pass, or simply just a config</br>
