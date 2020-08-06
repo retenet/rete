@@ -94,9 +94,13 @@ if [ "$PROXY" == "retenet_burpsuite:8080" ]; then
     echo "Waiting for Burpsuite to start..."
 
     CERT_DIR="/tmp/certificates"
+    mkdir -p $CERT_DIR
+
     pushd $CERT_DIR
     until [ -f cert.der ]; do
-        wget -qO cert.der "http://retenet_burpsuite:8080/cert" || rm cert.der
+        wget -qO cert.der "http://retenet_burpsuite:8080/cert" && { 
+            certutil -A -n "PortSwigger CA" -t "TCu,Cuw,Tuw" -i "cert.der" -d "sql:$HOME/profile";
+        } || { rm cert.der; }
     done
     popd
 fi

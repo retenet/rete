@@ -14,14 +14,8 @@ RUN apt-get update && \
    fonts-noto \
    fonts-noto-cjk \
    fonts-noto-color-emoji \
-   libexif-dev \
-   libgl1-mesa-dri \
-   libgl1-mesa-glx \
+   libnss3-tools \
    libpango1.0-0 \
-   libpulse0 \
-   libasound2 \
-   libasound2-plugins \
-   libcanberra-gtk* \
    locales \
    pepperflashplugin-nonfree \
    pulseaudio \
