@@ -1,7 +1,7 @@
 *filter
 :INPUT DROP [0:0]
 :FORWARD DROP [0:0]
-:OUTPUT ACCEPT [0:0]
+:OUTPUT DROP [0:0]
 :LOGGING - [0:0]
 -A INPUT -i lo -j ACCEPT
 -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
@@ -10,8 +10,9 @@
 -A FORWARD -j LOGGING
 -A OUTPUT -o lo -j ACCEPT
 -A OUTPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
--A OUTPUT -d fd00::/8 -j DROP
--A OUTPUT -d fec0::/10 -j DROP
+-A OUTPUT -d fd00::/8 -j ACCEPT
+-A OUTPUT -d fec0::/10 -j ACCEPT
+-A OUTPUT -j LOGGING
 -A LOGGING -m limit --limit 2/min -j LOG --log-prefix "DROPPED: "
 -A LOGGING -j DROP
 COMMIT
