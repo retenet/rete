@@ -261,7 +261,6 @@ def run_container(client, browser, profile, cfg, vpn):
 
 
 def pull_image(client, browser):
-    return
     logger.info(f"Downloading Latest {browser} Image...")
     cntr = client.images.pull(f"{REPO_NAME}/{browser}")
 
