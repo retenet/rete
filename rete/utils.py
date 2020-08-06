@@ -271,5 +271,5 @@ def get_containers(client):
     logger.info(f"Retreiving Running Containers...")
     for cntr in client.containers.list():
         if cntr.name.find("rete") != -1:
-            cntrs.append(cntr)
+            cntrs.append(cntr.name)
     return cntrs
