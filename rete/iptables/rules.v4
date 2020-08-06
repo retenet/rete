@@ -1,0 +1,16 @@
+*filter
+:INPUT DROP [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT ACCEPT [0:0]
+:LOGGING - [0:0]
+-A INPUT -i lo -j ACCEPT
+-A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -j LOGGING
+-A OUTPUT -o lo -j ACCEPT
+-A OUTPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A OUTPUT -d 10.0.0.0/8 -j DROP
+-A OUTPUT -d 172.16.0.0/12 -j DROP
+-A OUTPUT -d 192.168.0.0/16 -j DROP
+-A LOGGING -m limit --limit 2/min -j LOG --log-prefix "DROPPED: "
+-A LOGGING -j DROP
+COMMIT
