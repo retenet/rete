@@ -40,12 +40,34 @@ def fix_folder_perms(path):
             os.chown(dname, uid, gid)
 
 
+def setup_burpsuite(client):
+
+    # Check if burp is running
+    if "retenet_burpsuite" in get_containers(client):
+        return
+
+    pull_image(client, "burpsuite")
+
+    logger.info("Starting BurpSuite")
+    cntr = client.containers.run(
+        f"{REPO_NAME}/burpsuite",
+        detach=True,
+        environment={"DISPLAY": os.environ["DISPLAY"],},
+        hostname="burpsuite",
+        name="retenet_burpsuite",
+        tty=True,
+        network_mode="retenet",
+        remove=True,
+        volumes=["/tmp/.X11-unix/:/tmp/.X11-unix/"],
+    )
+
+
 def setup_vpn(client, vpn):
     volumes = list()
     environment = dict()
 
     if not vpn:
-        return "bridge"
+        return "retenet"
 
     pull_image(client, "tunle")
 
@@ -87,6 +109,7 @@ def setup_vpn(client, vpn):
         hostname=vpn["provider"],
         name=cntr_name,
         remove=True,
+        network_mode="retenet",
         volumes=volumes,
     )
 
@@ -108,7 +131,7 @@ def create_cntr_name(client, browser, vpn=False):
     elif len(cntrs) == 1:
         return f"{name}_2"
     else:
-        num = sorted(map(lambda x: x.split("_")[-1], sorted(cntrs)))[:-1][-1]
+        num = int(sorted(map(lambda x: x.split("_")[-1], sorted(cntrs)))[:-1][-1]) + 1
         return f"{name}_{num}"
 
 
@@ -195,11 +218,16 @@ def run_container(client, browser, profile, cfg, vpn):
 
     try:
         proxy = cfg["proxy"]
+        logger.debug("PROXY")
+        logger.debug(proxy)
+        if proxy == "burpsuite":
+            setup_burpsuite(client)
+            proxy = f"retenet_{proxy}:8080"
     except KeyError:
         proxy = None
 
     vpn_name = setup_vpn(client, vpn)
-    if vpn_name == "bridge":
+    if vpn_name == "retenet":
         hostname = profile
     else:
         hostname = None
@@ -233,6 +261,7 @@ def run_container(client, browser, profile, cfg, vpn):
 
 
 def pull_image(client, browser):
+    return
     logger.info(f"Downloading Latest {browser} Image...")
     cntr = client.images.pull(f"{REPO_NAME}/{browser}")
 
@@ -242,6 +271,6 @@ def get_containers(client):
 
     logger.info(f"Retreiving Running Containers...")
     for cntr in client.containers.list():
-        if cntr.name.find("retenet") != -1:
+        if cntr.name.find("rete") != -1:
             cntrs.append(cntr)
     return cntrs
