@@ -23,7 +23,14 @@ if [ -n "$PROXY" ]; then
     # extract the path (if any)
     path="$(echo $url | grep / | cut -d/ -f2-)"
 
-    echo -e "
+    if [[ "${PROXY,,}" == *"sock"* ]]; then
+        echo -e "
+user_pref(\"network.proxy.socks\", \"$host\");
+user_pref(\"network.proxy.socks_port\", $port);
+user_pref(\"network.proxy.type\", 1);
+" > "$BROWSER_PROFILE_DIR/prefs.js"
+    else
+        echo -e "
 user_pref(\"network.proxy.http\", \"$host\");
 user_pref(\"network.proxy.http_port\", $port);
 user_pref(\"network.proxy.ssl\", \"$host\");
@@ -32,6 +39,7 @@ user_pref(\"network.proxy.backup.ssl\", \"\");
 user_pref(\"network.proxy.backup.ssl_port\", 0);
 user_pref(\"network.proxy.type\", 1);
 " > "$BROWSER_PROFILE_DIR/prefs.js"
+    fi
 
 fi
 

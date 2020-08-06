@@ -55,7 +55,7 @@ profile:
 ```
 
 ### proxy
-  Currently the exected value is an HTTP/HTTPS proxy value. SOCKS coming soon. </br>
+  Currently the exected value is an HTTP/HTTPS/SOCKS proxy value in the form of: PROTO://IP:PORT </br>
   Proxy also supports BurpSuite by passing the value `burpsuite`.
 
 ### dns
