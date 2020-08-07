@@ -41,17 +41,13 @@ if not os.path.exists(USER_DATA_PATH):
 
 # setup pulseaudio socket
 pulse_socket = f"{USER_DATA_PATH}/pulseaudio.socket"
-if os.path.exists(pulse_socket) and not os.path.exists("/tmp/rete_launched"):
-    Path("/tmp/rete_launched").touch()
-    os.remove(pulse_socket)
-else:
+if not os.path.exists(pulse_socket):
     create_pulse_socket = (
         f"pactl load-module module-native-protocol-unix socket={pulse_socket}"
     )
     subprocess.call(
         create_pulse_socket.split(), stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT
     )
-
 
 BROWSERS = ["brave", "chromium", "firefox", "opera", "tbb"]
 
