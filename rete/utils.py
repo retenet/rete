@@ -41,7 +41,7 @@ def fix_folder_perms(path):
             os.chown(dname, uid, gid)
 
 
-def setup_burpsuite(client):
+def setup_burpsuite(client, vpn_name):
 
     # Check if burp is running
     if "retenet_burpsuite" in get_containers(client):
@@ -58,7 +58,7 @@ def setup_burpsuite(client):
             hostname="burpsuite",
             name="retenet_burpsuite",
             tty=True,
-            network_mode="retenet",
+            network_mode=vpn_name,
             remove=True,
             volumes=["/tmp/.X11-unix/:/tmp/.X11-unix/"],
         )
@@ -229,22 +229,22 @@ def run_container(client, browser, profile, cfg, vpn):
     except KeyError:
         doh_domain = None
 
-    try:
-        proxy = cfg["proxy"]
-        logger.debug("PROXY")
-        logger.debug(proxy)
-        if proxy == "burpsuite":
-            setup_burpsuite(client)
-            proxy = f"retenet_{proxy}:8080"
-    except KeyError:
-        proxy = None
-
     vpn_name = setup_vpn(client, vpn)
     if vpn_name == "retenet":
         hostname = profile
     else:
         hostname = None
         dns_list = list()
+
+    try:
+        proxy = cfg["proxy"]
+        logger.debug("PROXY")
+        logger.debug(proxy)
+        if proxy == "burpsuite":
+            setup_burpsuite(client, vpn_name)
+            proxy = f"retenet_{proxy}:8080"
+    except KeyError:
+        proxy = None
 
     fix_folder_perms(f"{USER_DATA_PATH}")
     logger.info(f"Starting {browser}...")
