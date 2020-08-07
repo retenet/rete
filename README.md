@@ -55,7 +55,7 @@ profile:
 ```
 
 ### proxy
-  Currently the exected value is an HTTP/HTTPS/SOCKS proxy value in the form of: PROTO://IP:PORT </br>
+  Currently the expected value is an HTTP/HTTPS/SOCKS proxy value in the form of: PROTO://IP:PORT </br>
   Proxy also supports BurpSuite by passing the value `burpsuite`.
 
 ### dns
@@ -76,3 +76,71 @@ list: the list of available profiles to use, feel free to add/remove any of them
  pass: password for login</br>
  config: this is used for custom openvpn configs</br>
  Typical args would be provider with user/pass, or simply just a config</br>
+
+### Example configs
+
+Standard Usage
+```
+browser:
+  name: firefox
+  dns:
+    ip: 1.1.1.1
+    host: cloudflare-dns.com
+    doh: true
+
+profile:
+  default: personal
+  list: [htb, lan, media, personal, shopping, work]
+```
+
+Burpsuite
+```
+browser:
+  name: firefox
+  proxy: burpsuite
+
+profile:
+  default: personal
+  list: [htb, lan, media, personal, shopping, work]
+```
+
+OpenVPN
+```
+browser:
+  name: firefox
+
+profile:
+  default: personal
+  list: [htb, lan, media, personal, shopping, work]
+
+vpn:
+  config: ~/ovpn/wh1tf3fox.ovpn
+```
+
+Tor Transparent Proxy
+```
+browser:
+  name: firefox
+
+profile:
+  default: personal
+  list: [htb, lan, media, personal, shopping, work]
+
+vpn:
+  provider: tor
+```
+
+Pia
+```
+browser:
+  name: firefox
+
+profile:
+  default: personal
+  list: [htb, lan, media, personal, shopping, work]
+
+vpn:
+  provider: pia
+  user: abcdef
+  pass: abcdef
+```
