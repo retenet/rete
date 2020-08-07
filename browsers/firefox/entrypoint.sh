@@ -86,6 +86,14 @@ user_pref(\"network.trr.mode\", 2);
 
 fi
 
+if [ -n "${TOR}" ]; then
+    echo -e "
+user_pref(\"dom.securecontext.whitelist_onions\", true);
+user_pref(\"network.dns.blockDotOnion\", false);
+user_pref(\"network.http.referer.hideOnionSource\", true);
+" >> "$BROWSER_PROFILE_DIR/prefs.js"
+fi
+
 if [ ! -z "$WAIT_FOR_CERT" ]; then
     until [ -f /usr/lib/mozilla/certificates/cert.der ]; do
         sleep 1

@@ -246,6 +246,11 @@ def run_container(client, browser, profile, cfg, vpn):
     except KeyError:
         proxy = None
 
+    vpn_env = None
+    if 'provider' in vpn:
+        if vpn['provider'] == 'tor':
+            vpn_env = "tor"
+
     fix_folder_perms(f"{USER_DATA_PATH}")
     logger.info(f"Starting {browser}...")
     try:
@@ -260,6 +265,7 @@ def run_container(client, browser, profile, cfg, vpn):
                 "DNS": dns,
                 "PROFILE_NAME": profile,
                 "PROXY": proxy,
+                "TOR": vpn_env,
                 "PULSE_SERVER": "unix:/tmp/pulseaudio.socket",
                 "PULSE_COOKIE": "/tmp/pulseaudio.cookie",
             },
