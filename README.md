@@ -144,3 +144,10 @@ vpn:
   user: abcdef
   pass: abcdef
 ```
+
+**NOTE**: if OpenVPN fails to load try adding:
+```
+pull-filter ignore "ifconfig-ipv6 "
+pull-filter ignore "route-ipv6 "
+```
+to your ovpn config
