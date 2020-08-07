@@ -119,11 +119,8 @@ def main():
         client = docker.from_env()
         # Verify docker is running
         client.networks.create("retenet", driver="bridge", check_duplicate=True)
-    except (
-        docker.errors.APIError,
-        requests.exceptions.HTTPError
-    ):
-        pass # Duplicate Network
+    except (docker.errors.APIError, requests.exceptions.HTTPError):
+        pass  # Duplicate Network
     except (
         FileNotFoundError,
         urllib3.exceptions.ProtocolError,

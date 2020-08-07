@@ -8,6 +8,7 @@ import docker
 import shutil
 import yaml
 import pwd
+import sys
 import os
 
 from rete import (
@@ -49,17 +50,23 @@ def setup_burpsuite(client):
     pull_image(client, "burpsuite")
 
     logger.info("Starting BurpSuite")
-    cntr = client.containers.run(
-        f"{REPO_NAME}/burpsuite",
-        detach=True,
-        environment={"DISPLAY": os.environ["DISPLAY"],},
-        hostname="burpsuite",
-        name="retenet_burpsuite",
-        tty=True,
-        network_mode="retenet",
-        remove=True,
-        volumes=["/tmp/.X11-unix/:/tmp/.X11-unix/"],
-    )
+    try:
+        cntr = client.containers.run(
+            f"{REPO_NAME}/burpsuite",
+            detach=True,
+            environment={"DISPLAY": os.environ["DISPLAY"],},
+            hostname="burpsuite",
+            name="retenet_burpsuite",
+            tty=True,
+            network_mode="retenet",
+            remove=True,
+            volumes=["/tmp/.X11-unix/:/tmp/.X11-unix/"],
+        )
+    except (requests.exceptions.HTTPError, docker.errors.APIError):
+        logger.error(
+            "Failed to Start Container. You might need to reboot for kernel updates."
+        )
+        sys.exit(1)
 
 
 def setup_vpn(client, vpn):
@@ -99,19 +106,25 @@ def setup_vpn(client, vpn):
 
     cntr_name = create_cntr_name(client, vpn["provider"], True)
     logger.info(f"Starting {cntr_name}...")
-    cntr = client.containers.run(
-        f"{REPO_NAME}/tunle",
-        cap_drop=["all"],
-        cap_add=["MKNOD", "SETUID", "SETGID", "NET_ADMIN", "NET_RAW"],
-        detach=True,
-        devices=["/dev/net/tun"],
-        environment=environment,
-        hostname=vpn["provider"],
-        name=cntr_name,
-        remove=True,
-        network_mode="retenet",
-        volumes=volumes,
-    )
+    try:
+        cntr = client.containers.run(
+            f"{REPO_NAME}/tunle",
+            cap_drop=["all"],
+            cap_add=["MKNOD", "SETUID", "SETGID", "NET_ADMIN", "NET_RAW"],
+            detach=True,
+            devices=["/dev/net/tun"],
+            environment=environment,
+            hostname=vpn["provider"],
+            name=cntr_name,
+            remove=True,
+            network_mode="retenet",
+            volumes=volumes,
+        )
+    except (requests.exceptions.HTTPError, docker.errors.APIError):
+        logger.error(
+            "Failed to Start Container. You might need to reboot for kernel updates."
+        )
+        sys.exit(1)
 
     return f"container:{cntr_name}"
 
@@ -235,29 +248,35 @@ def run_container(client, browser, profile, cfg, vpn):
 
     fix_folder_perms(f"{USER_DATA_PATH}")
     logger.info(f"Starting {browser}...")
-    cntr = client.containers.run(
-        f"{REPO_NAME}/{browser}",
-        detach=True,
-        devices=["/dev/snd", "/dev/dri"],
-        environment={
-            "BROWSER": browser,
-            "DISPLAY": os.environ["DISPLAY"],
-            "DOH": doh_domain,
-            "DNS": dns,
-            "PROFILE_NAME": profile,
-            "PROXY": proxy,
-            "PULSE_SERVER": "unix:/tmp/pulseaudio.socket",
-            "PULSE_COOKIE": "/tmp/pulseaudio.cookie",
-        },
-        hostname=hostname,
-        name=create_cntr_name(client, browser),
-        dns=dns_list,
-        network_mode=vpn_name,
-        remove=True,
-        security_opt=security_opt,
-        shm_size="3G",
-        volumes=volumes,
-    )
+    try:
+        cntr = client.containers.run(
+            f"{REPO_NAME}/{browser}",
+            detach=True,
+            devices=["/dev/snd", "/dev/dri"],
+            environment={
+                "BROWSER": browser,
+                "DISPLAY": os.environ["DISPLAY"],
+                "DOH": doh_domain,
+                "DNS": dns,
+                "PROFILE_NAME": profile,
+                "PROXY": proxy,
+                "PULSE_SERVER": "unix:/tmp/pulseaudio.socket",
+                "PULSE_COOKIE": "/tmp/pulseaudio.cookie",
+            },
+            hostname=hostname,
+            name=create_cntr_name(client, browser),
+            dns=dns_list,
+            network_mode=vpn_name,
+            remove=True,
+            security_opt=security_opt,
+            shm_size="3G",
+            volumes=volumes,
+        )
+    except (requests.exceptions.HTTPError, docker.errors.APIError):
+        logger.error(
+            "Failed to Start Container. You might need to reboot for kernel updates."
+        )
+        sys.exit(1)
 
 
 def pull_image(client, browser):
