@@ -16,7 +16,6 @@ properties:
       proxy:
         type: 
           - string
-        pattern: '^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$'
       dns:
         type: object
         properties:
@@ -27,7 +26,7 @@ properties:
           host:
             type: 
               - string
-            pattern: '^((ftp|http|https):\/\/)?(www.)?(?!.*(ftp|http|https|www.))[a-zA-Z0-9_-]+(\.[a-zA-Z]+)+((\/)[\w#]+)*(\/\w+\?[a-zA-Z0-9_]+=\w+(&[a-zA-Z0-9_]+=\w+)*)?$'
+            pattern: '^[a-zA-Z0-9_-]+(\.[a-zA-Z-]+)+((\/)[\w#]+)*(\/\w+\?[a-zA-Z0-9_-]+=\w+(&[a-zA-Z0-9_]+=\w+)*)?$'
           doh:
             type: boolean
   profile:
