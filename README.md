@@ -74,7 +74,7 @@ list: the list of available profiles to use, feel free to add/remove any of them
  provider: one of the supported providers</br>
  user: username for login</br>
  pass: password for login</br>
- config: this is used for custom openvpn configs</br>
+ config: this is used for custom openvpn configs. It **must** be fullpath</br>
  Typical args would be provider with user/pass, or simply just a config</br>
 
 ### Example configs
@@ -114,7 +114,7 @@ profile:
   list: [htb, lan, media, personal, shopping, work]
 
 vpn:
-  config: ~/ovpn/wh1tf3fox.ovpn
+  config: /home/user/ovpn/wh1tf3fox.ovpn
 ```
 
 Tor Transparent Proxy
