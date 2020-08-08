@@ -246,10 +246,10 @@ def run_container(client, browser, profile, cfg, vpn):
     except KeyError:
         proxy = None
 
-    vpn_env = None
-    if 'provider' in vpn:
-        if vpn['provider'] == 'tor':
-            vpn_env = "tor"
+    if not vpn:
+        vpn_env = None
+    elif 'provider' in vpn and vpn['provider'] == 'tor':
+        vpn_env = "tor"
 
     fix_folder_perms(f"{USER_DATA_PATH}")
     logger.info(f"Starting {browser}...")
