@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
+from pathlib import Path
 import subprocess
 import jsonschema
+import requests
 import logging
 import docker
 import shutil
@@ -43,11 +45,14 @@ def fix_folder_perms(path):
 
 def setup_burpsuite(client, vpn_name):
 
-    # Check if burp is running
-    if "retenet_burpsuite" in get_containers(client):
-        return
-
     pull_image(client, "burpsuite")
+
+    cntr_name = create_cntr_name(client, "burpsuite")
+
+    if vpn_name == "retenet":
+        hostname = "burpsuite"
+    else:
+        hostname = None
 
     logger.info("Starting BurpSuite")
     try:
@@ -55,11 +60,11 @@ def setup_burpsuite(client, vpn_name):
             f"{REPO_NAME}/burpsuite",
             detach=True,
             environment={"DISPLAY": os.environ["DISPLAY"],},
-            hostname="burpsuite",
-            name="retenet_burpsuite",
+            hostname=hostname,
+            name=cntr_name,
             tty=True,
-            network_mode=vpn_name,
             remove=True,
+            network_mode=vpn_name,
             volumes=["/tmp/.X11-unix/:/tmp/.X11-unix/"],
         )
     except (requests.exceptions.HTTPError, docker.errors.APIError):
@@ -67,7 +72,11 @@ def setup_burpsuite(client, vpn_name):
             "Failed to Start Container. You might need to reboot for kernel updates."
         )
         sys.exit(1)
+    except Exception as e:
+        logger.error(e)
+        sys.exit(1)
 
+    return cntr_name
 
 def setup_vpn(client, vpn):
     volumes = list()
@@ -80,6 +89,7 @@ def setup_vpn(client, vpn):
 
     # User must set provider with user/pass or a config
     if "provider" in vpn:
+        provider = vpn["provider"]
         environment["PROVIDER"] = vpn["provider"]
         if vpn["provider"] not in ["tor", "generic"]:
             if "user" in vpn and "pass" in vpn:
@@ -94,17 +104,20 @@ def setup_vpn(client, vpn):
             environment["PASSWD"] = "generic"
 
             if "config" in vpn and vpn["config"]:
-                volumes.append(f'{vpn["config"]:/tmp/vpn}')
+                vpn_config = os.path.dirname(os.path.abspath(Path(vpn["config"]).expanduser()))
+                volumes.append(f'{vpn_config}:/tmp/vpn')
             else:
                 logger.error("Cannot Start VPN without Login Creds or a Config")
                 exit(1)
     elif "config" in vpn and vpn["config"]:
-        volumes.append(f'{vpn["config"]:/tmp/vpn}')
+        provider = "generic"
+        vpn_config = os.path.dirname(os.path.abspath(Path(vpn["config"]).expanduser()))
+        volumes.append(f'{vpn_config}:/tmp/vpn')
     else:
         logger.error("Cannot Start VPN without Login Creds or a Config")
         exit(1)
 
-    cntr_name = create_cntr_name(client, vpn["provider"], True)
+    cntr_name = create_cntr_name(client, provider, True)
     logger.info(f"Starting {cntr_name}...")
     try:
         cntr = client.containers.run(
@@ -114,7 +127,7 @@ def setup_vpn(client, vpn):
             detach=True,
             devices=["/dev/net/tun"],
             environment=environment,
-            hostname=vpn["provider"],
+            hostname=provider,
             name=cntr_name,
             remove=True,
             network_mode="retenet",
@@ -122,8 +135,11 @@ def setup_vpn(client, vpn):
         )
     except (requests.exceptions.HTTPError, docker.errors.APIError):
         logger.error(
-            "Failed to Start Container. You might need to reboot for kernel updates."
+            "Failed to Start Container."
         )
+        sys.exit(1)
+    except Exception as e:
+        logger.error(e)
         sys.exit(1)
 
     return f"container:{cntr_name}"
@@ -133,7 +149,10 @@ def create_cntr_name(client, browser, vpn=False):
     if vpn:
         name = f"tunle_{browser}"
     else:
-        name = f"rete_{browser}"
+        if browser == "burpsuite":
+            name = f"retenet_{browser}"
+        else:
+            name = f"rete_{browser}"
     cntrs = list()
     for cntr in client.containers.list():
         if cntr.name.find(name) != -1:
@@ -241,15 +260,20 @@ def run_container(client, browser, profile, cfg, vpn):
         logger.debug("PROXY")
         logger.debug(proxy)
         if proxy == "burpsuite":
-            setup_burpsuite(client, vpn_name)
-            proxy = f"retenet_{proxy}:8080"
+            burp_cntr = setup_burpsuite(client, vpn_name)
+            if vpn_name == "retenet":
+                proxy = f"{burp_cntr}:8080"
+            else:
+                proxy = "127.0.0.1:8080"
+            burp_proxy = True
     except KeyError:
+        burp_proxy = None
         proxy = None
 
-    if not vpn:
-        vpn_env = None
-    elif 'provider' in vpn and vpn['provider'] == 'tor':
+    if vpn and 'provider' in vpn and vpn['provider'] == 'tor':
         vpn_env = "tor"
+    else:
+        vpn_env = None
 
     fix_folder_perms(f"{USER_DATA_PATH}")
     logger.info(f"Starting {browser}...")
@@ -265,6 +289,7 @@ def run_container(client, browser, profile, cfg, vpn):
                 "DNS": dns,
                 "PROFILE_NAME": profile,
                 "PROXY": proxy,
+                "BURP": burp_proxy,
                 "TOR": vpn_env,
                 "PULSE_SERVER": "unix:/tmp/pulseaudio.socket",
                 "PULSE_COOKIE": "/tmp/pulseaudio.cookie",
@@ -280,8 +305,11 @@ def run_container(client, browser, profile, cfg, vpn):
         )
     except (requests.exceptions.HTTPError, docker.errors.APIError):
         logger.error(
-            "Failed to Start Container. You might need to reboot for kernel updates."
+            "Failed to Start Container."
         )
+        sys.exit(1)
+    except Exception as e:
+        logger.error(e)
         sys.exit(1)
 
 
@@ -295,6 +323,6 @@ def get_containers(client):
 
     logger.info(f"Retreiving Running Containers...")
     for cntr in client.containers.list():
-        if cntr.name.find("rete") != -1:
+        if cntr.name.find("rete") != -1 or cntr.name.find("tunle") != -1:
             cntrs.append(cntr.name)
     return cntrs
