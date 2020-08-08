@@ -33,10 +33,13 @@ user_pref(\"network.proxy.type\", 1);
         echo -e "
 user_pref(\"network.proxy.http\", \"$host\");
 user_pref(\"network.proxy.http_port\", $port);
+user_pref(\"network.proxy.ftp\", \"$host\");
+user_pref(\"network.proxy.ftp_port\", $port);
 user_pref(\"network.proxy.ssl\", \"$host\");
 user_pref(\"network.proxy.ssl_port\", $port);
-user_pref(\"network.proxy.backup.ssl\", \"\");
-user_pref(\"network.proxy.backup.ssl_port\", 0);
+user_pref(\"network.proxy.backup.ssl\", \"$host\");
+user_pref(\"network.proxy.backup.ssl_port\", $port);
+user_pref(\"network.proxy.share_proxy_settings\", true);
 user_pref(\"network.proxy.type\", 1);
 " > "$BROWSER_PROFILE_DIR/prefs.js"
     fi
@@ -106,7 +109,7 @@ if [ ! -z "$MORE_ARGS" ]; then
     args+=("$MORE_ARGS")
 fi
 
-if [ "$PROXY" == "retenet_burpsuite:8080" ]; then
+if [ -n "$BURP" ]; then
     echo "Waiting for Burpsuite to start..."
 
     CERT_DIR="/tmp/certificates"
@@ -114,7 +117,7 @@ if [ "$PROXY" == "retenet_burpsuite:8080" ]; then
 
     pushd $CERT_DIR
     until [ -f cert.der ]; do
-        wget -qO cert.der "http://retenet_burpsuite:8080/cert" && { 
+        wget -qO cert.der "http://${PROXY}/cert" && { 
             certutil -A -n "PortSwigger CA" -t "TCu,Cuw,Tuw" -i "cert.der" -d "sql:$HOME/profile";
         } || { rm cert.der; }
     done
