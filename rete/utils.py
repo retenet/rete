@@ -78,6 +78,7 @@ def setup_burpsuite(client, vpn_name):
 
     return cntr_name
 
+
 def setup_vpn(client, vpn):
     volumes = list()
     environment = dict()
@@ -104,15 +105,17 @@ def setup_vpn(client, vpn):
             environment["PASSWD"] = "generic"
 
             if "config" in vpn and vpn["config"]:
-                vpn_config = os.path.dirname(os.path.abspath(Path(vpn["config"]).expanduser()))
-                volumes.append(f'{vpn_config}:/tmp/vpn')
+                vpn_config = os.path.dirname(
+                    os.path.abspath(Path(vpn["config"]).expanduser())
+                )
+                volumes.append(f"{vpn_config}:/tmp/vpn")
             else:
                 logger.error("Cannot Start VPN without Login Creds or a Config")
                 exit(1)
     elif "config" in vpn and vpn["config"]:
         provider = "generic"
         vpn_config = os.path.dirname(os.path.abspath(Path(vpn["config"]).expanduser()))
-        volumes.append(f'{vpn_config}:/tmp/vpn')
+        volumes.append(f"{vpn_config}:/tmp/vpn")
     else:
         logger.error("Cannot Start VPN without Login Creds or a Config")
         exit(1)
@@ -134,9 +137,7 @@ def setup_vpn(client, vpn):
             volumes=volumes,
         )
     except (requests.exceptions.HTTPError, docker.errors.APIError):
-        logger.error(
-            "Failed to Start Container."
-        )
+        logger.error("Failed to Start Container.")
         sys.exit(1)
     except Exception as e:
         logger.error(e)
@@ -270,7 +271,7 @@ def run_container(client, browser, profile, cfg, vpn):
         burp_proxy = None
         proxy = None
 
-    if vpn and 'provider' in vpn and vpn['provider'] == 'tor':
+    if vpn and "provider" in vpn and vpn["provider"] == "tor":
         vpn_env = "tor"
     else:
         vpn_env = None
@@ -304,9 +305,7 @@ def run_container(client, browser, profile, cfg, vpn):
             volumes=volumes,
         )
     except (requests.exceptions.HTTPError, docker.errors.APIError):
-        logger.error(
-            "Failed to Start Container."
-        )
+        logger.error("Failed to Start Container.")
         sys.exit(1)
     except Exception as e:
         logger.error(e)
