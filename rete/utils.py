@@ -67,10 +67,11 @@ def setup_burpsuite(client, vpn_name):
             network_mode=vpn_name,
             volumes=["/tmp/.X11-unix/:/tmp/.X11-unix/"],
         )
-    except (requests.exceptions.HTTPError, docker.errors.APIError):
+    except (requests.exceptions.HTTPError, docker.errors.APIError) as e:
         logger.error(
             "Failed to Start Container. You might need to reboot for kernel updates."
         )
+        logger.error(e)
         sys.exit(1)
     except Exception as e:
         logger.error(e)
@@ -136,8 +137,9 @@ def setup_vpn(client, vpn):
             network_mode="retenet",
             volumes=volumes,
         )
-    except (requests.exceptions.HTTPError, docker.errors.APIError):
+    except (requests.exceptions.HTTPError, docker.errors.APIError) as e:
         logger.error("Failed to Start Container.")
+        logger.error(e)
         sys.exit(1)
     except Exception as e:
         logger.error(e)
@@ -164,7 +166,7 @@ def create_cntr_name(client, browser, vpn=False):
     elif len(cntrs) == 1:
         return f"{name}_2"
     else:
-        num = int(sorted(map(lambda x: x.split("_")[-1], sorted(cntrs)))[:-1][-1]) + 1
+        num = int(sorted(cntrs)[-1].split("_")[-1]) + 1
         return f"{name}_{num}"
 
 
@@ -304,8 +306,9 @@ def run_container(client, browser, profile, cfg, vpn):
             shm_size="3G",
             volumes=volumes,
         )
-    except (requests.exceptions.HTTPError, docker.errors.APIError):
+    except (requests.exceptions.HTTPError, docker.errors.APIError) as e:
         logger.error("Failed to Start Container.")
+        logger.error(e)
         sys.exit(1)
     except Exception as e:
         logger.error(e)

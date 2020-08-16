@@ -41,7 +41,7 @@ if not os.path.exists(USER_DATA_PATH):
 
 # setup pulseaudio socket
 pulse_socket = f"{USER_DATA_PATH}/pulseaudio.socket"
-tmp_file = '/tmp/rete_setup'
+tmp_file = "/tmp/rete_setup"
 if not os.path.exists(tmp_file) and os.path.exists(pulse_socket):
     Path(pulse_socket).unlink()
 
