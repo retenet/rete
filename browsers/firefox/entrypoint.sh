@@ -27,6 +27,7 @@ if [ -n "$PROXY" ]; then
         echo -e "
 user_pref(\"network.proxy.socks\", \"$host\");
 user_pref(\"network.proxy.socks_port\", $port);
+user_pref(\"network.proxy.socks_remote_dns\", true);
 user_pref(\"network.proxy.type\", 1);
 " > "$BROWSER_PROFILE_DIR/prefs.js"
     else
