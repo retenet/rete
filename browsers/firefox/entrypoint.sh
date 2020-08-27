@@ -85,6 +85,7 @@ user_pref(\"webgl.disabled\", true);
 if [ -n "${DOH}" ]; then
     echo -e "
 user_pref(\"network.trr.custom_uri\", \"$DOH\");
+user_pref(\"network.trr.uri\", \"$DOH\");
 user_pref(\"network.trr.mode\", 2);
 " >> "$BROWSER_PROFILE_DIR/prefs.js"
 
