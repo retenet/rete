@@ -121,7 +121,17 @@ def setup_vpn(client, vpn):
         logger.error("Cannot Start VPN without Login Creds or a Config")
         exit(1)
 
-    cntr_name = create_cntr_name(client, provider, True)
+    # Check if VPN is already running
+    for cntr in get_containers(client):
+        cntr_name = f'tunle_{provider}'
+        if cntr_name == cntr:
+            # Prompt User for connecting to existing
+            existing = input('Connect to Running VPN (Y\\n)? ').lower().strip()
+            if not existing or existing == 'y':
+                break
+    else:
+        cntr_name = create_cntr_name(client, provider, True)
+    
     logger.info(f"Starting {cntr_name}...")
     try:
         cntr = client.containers.run(
