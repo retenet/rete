@@ -128,7 +128,7 @@ def setup_vpn(client, vpn):
             # Prompt User for connecting to existing
             existing = input('Connect to Running VPN (Y\\n)? ').lower().strip()
             if not existing or existing == 'y':
-                break
+                return f"container:{cntr_name}"
     else:
         cntr_name = create_cntr_name(client, provider, True)
     
