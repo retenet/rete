@@ -121,10 +121,14 @@ Tor Transparent Proxy
 ```
 browser:
   name: firefox
+  dns:
+    ip: 1.1.1.1
+    host: dns4torpnlfs2ifuz2s2yf3fc7rdmsbhm6rw75euj35pac6ap25zgqad.onion
+    doh: true
 
 profile:
   default: personal
-  list: [htb, lan, media, personal, shopping, work]
+  list: [htb, lan, mail, media, personal, shopping, work]
 
 vpn:
   provider: tor
